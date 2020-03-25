@@ -1,0 +1,6 @@
+/home/dhthutrang/files/bisulfite_seq/RRBS
+https://egg2.wustl.edu/roadmap/data/byDataType/dnamethylation/RRBS/FractionalMethylation.tar.gz
+https://egg2.wustl.edu/roadmap/data/byDataType/dnamethylation/RRBS/ReadCoverage.tar.gz
+https://egg2.wustl.edu/roadmap/data/byDataType/dnamethylation/RRBS/EG.mnemonics.name.xls
+https://egg2.wustl.edu/roadmap/data/byDataType/dnamethylation/RRBS/header
+

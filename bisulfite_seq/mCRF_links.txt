@@ -1,0 +1,4 @@
+/home/dhthutrang/files/bisulfite_seq/mCRF
+https://egg2.wustl.edu/roadmap/data/byDataType/dnamethylation/mCRF/FractionalMethylation.tar.gz
+https://egg2.wustl.edu/roadmap/data/byDataType/dnamethylation/mCRF/EG.mnemonics.name.xls
+
