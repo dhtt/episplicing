@@ -1,4 +1,5 @@
 #!/bin/bash
+#author: hmj6jmh/https://askubuntu.com/questions/214018/how-to-make-wget-faster-or-multithreading
 
 filename="$1" # get filename from command line argument
 
