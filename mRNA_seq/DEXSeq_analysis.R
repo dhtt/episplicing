@@ -1,3 +1,4 @@
+#===== LOAD PACKAGES ======
 library("tidyr")
 library("genomation")
 library("data.table")
@@ -10,48 +11,66 @@ library('stringr')
 library("RColorBrewer")
 library("dplyr")
 library("DEXSeq")
+library("optparse")
 suppressPackageStartupMessages( library( "DEXSeq" ) )
-setwd("~/Documents/BIOINFO/Episplicing/files/Result/mRNA/rep3")
 
-normalize_01<-function(m){ 
-  (m - min(m))/(max(m)-min(m))
-}
-normalize_11<-function(m){
-  2*(m - min(m))/(max(m)-min(m)) - 1
-}
+option_list = list(
+  make_option(c("-f", "--countfolder"), type="character", default="~/Documents/BIOINFO/Episplicing/files/Result/combine/expression", 
+              help="path to folder of counts", metavar="character"),
+  make_option(c("-a", "--epigenome1"), type="character", default=NULL, 
+              help="ID of first epigenome", metavar="character"),
+  make_option(c("-b", "--epigenome2"), type="character", default=NULL, 
+              help="ID of second epigenome", metavar="character"),
+  make_option(c("-g", "--referencegenome"), type="character", default="/Users/dhthutrang/Documents/BIOINFO/Episplicing/episplicing/mrna_seq/reference_genome.gtf", 
+              help="path to flattened reference genome", metavar="character")
+); 
 
-new_label = c("H1 Cell Line (ESC H1)", "iPSc 19", "iPSc 6","Mesenchymal Stem Cell", "Mesendoderm", "Trophoblast", "Neural Progenitor Cell", "IMR90","Fetal Brain", "Fetal Brain Germinal Matrix", "Brain Hippocampus Middle", "Breast Luminal Epithelium",  "Breast Myoepithelial cells", "Adult Liver")
-gene_list_anticor = c("ENY2", "ADAM9", "BNIP3L", "LIPG", "SLC16A2", "MRPS18C", "MRPS30", "SLC25A43", "FOXO4", "^CA2")
-gene_list_cor = c("MRPL22", "PQBP1", "SLC1A3", "NSG1", "PRR7", "TMED9", "RHPN1", "APCDD1", "UGDH", "FOXO4", "^CA2")
-cell_list_grep = paste(cell_types, collapse = "|")
-gene_list_anticor_grep = paste(gene_list_anticor, collapse = "|")
-gene_list_cor_grep = paste(gene_list_cor, collapse = "|")
+opt_parser = OptionParser(option_list=option_list);
+opt = parse_args(opt_parser);
 
+#===== PREPARE DATA =====
+setwd(opt$countfolder)
+inDir = normalizePath(getwd())
+epi_id1 = opt$epigenome1
+epi_id2 = opt$epigenome1
+pair = paste(paste('^', epi_id1, sep=''), paste('^',  epi_id2, sep=''), sep='|')
+count_files = list.files(inDir, pattern=pair, full.names=TRUE)
+gtf_files = opt$referencegenome
+print(paste("---> Working folder: ", opt$countfolder, sep=''))
+print(paste("---> Count files: ", basename(count_files), sep=''))
+print(paste("---> Reference genome: ", gtf_files, sep=''))
 
-inDir = normalizePath(paste(getwd(),"count", sep="/"))
-countFiles = list.files(inDir, pattern="*count.txt", full.names=TRUE)
-basename(countFiles)
-file_name = as.data.table(str_split_fixed(basename(countFiles), "\\.", 5))
-row_names = c(str_split_fixed(basename(countFiles), "\\.bed", 5)[,1])
-condition = file_name$V2
-cell_types = c("H1hesc","Huvec")
+file_name = as.data.table(str_split_fixed(basename(count_files), "\\_", 3))
+row_names = c(file_name$V2)
+condition = c(file_name$V1)
 
 sampleTable = data.frame(
   row.names = row_names,
   condition = condition)
 
-dxd_stranded = DEXSeqDataSetFromHTSeq(
-  countFiles,
-  sampleData=sampleTable,
-  design= ~ sample + exon + condition:exon,
-  flattenedfile= normalizePath(paste(getwd(),"reference.flattened.ens.gtf", sep="/"))
+print("---> Inputting to DEXSeq")
+dxd = DEXSeqDataSetFromHTSeq(
+  count_files,
+  sampleData = sampleTable,
+  design = ~ sample + exon + condition:exon,
+  flattenedfile= normalizePath(gtf_files)
 )
-head(counts(dxd_stranded))
-dxd_stranded.e1 <- estimateSizeFactors(dxd_stranded)
-dxd_stranded.e2 = estimateDispersions(dxd_stranded.e1)
-dxd_stranded.deu = testForDEU(dxd_stranded.e2)
-dxd_stranded.fc = estimateExonFoldChanges( dxd_stranded.deu, fitExpToVar="condition")
-dxd_stranded.res = DEXSeqResults(dxd_stranded.fc)
 
-table ( dxr1$padj < 0.1 )
-table (tapply( dxr1$padj < 0.1, dxr1$groupID, any ))
+print("---> Getting DEXSeq result")
+dxd.res = DEXSeq(dxd, quiet = TRUE)
+
+print("---> Saving DEXSeq normalized counts")
+dxd.count = data.frame(counts(dxd.res, normalized = TRUE))
+colnames(dxd.count) = paste(file_name$V1, file_name$V2, sep='_')
+normedcount_name = paste(paste(epi_id1, epi_id2, sep='_'), "normedcount.csv", sep='_')
+write.table(dxd.count, normedcount_name, quote=FALSE, sep=",", dec=".", row.names=TRUE, col.names=TRUE)
+# dxd.count = read.csv("temp_count.csv", header=TRUE, sep = ",")
+
+print("---> Saving DEXSeq result")
+result_name = paste(paste(epi_id2, epi_id3, sep='_'), "res.csv", sep='_')
+write.table(as.data.frame(dxd.res[c(1,2,3,5,6,7,10)]), result_name, 
+            quote=FALSE, sep=",", dec=".", row.names=FALSE, col.names=TRUE)
+# temp = read.csv(result_name, header=TRUE, sep = ",")
+
+print("===> FINISHED!")
+
