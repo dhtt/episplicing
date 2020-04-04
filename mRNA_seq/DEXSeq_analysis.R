@@ -32,12 +32,13 @@ opt = parse_args(opt_parser);
 setwd(opt$countfolder)
 inDir = normalizePath(getwd())
 epi_id1 = opt$epigenome1
-epi_id2 = opt$epigenome1
+epi_id2 = opt$epigenome2
 pair = paste(paste('^', epi_id1, sep=''), paste('^',  epi_id2, sep=''), sep='|')
 count_files = list.files(inDir, pattern=pair, full.names=TRUE)
 gtf_files = opt$referencegenome
 print(paste("---> Working folder: ", opt$countfolder, sep=''))
-print(paste("---> Count files: ", basename(count_files), sep=''))
+print("---> Count files: ")
+print(basename(count_files))
 print(paste("---> Reference genome: ", gtf_files, sep=''))
 
 file_name = as.data.table(str_split_fixed(basename(count_files), "\\_", 3))
