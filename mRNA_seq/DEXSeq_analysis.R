@@ -1,3 +1,4 @@
+start_time <- Sys.time()
 #===== LOAD PACKAGES ======
 library('stringr', quietly=TRUE)
 library("data.table", quietly=TRUE)
@@ -66,4 +67,6 @@ write.table(as.data.frame(dxd.res[c(1,2,3,5,6,7,10)]), result_name,
 # dxd.res = read.csv(result_name, header=TRUE, sep = ",")
 
 print("===> FINISHED!")
+end_time <- Sys.time()
+end_time - start_time
 

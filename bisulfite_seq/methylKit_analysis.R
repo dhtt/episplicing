@@ -1,3 +1,4 @@
+start_time <- Sys.time()
 #===== LOAD PACKAGES =====
 library("genomation", quietly=TRUE)
 library("data.table", quietly=TRUE)
@@ -34,8 +35,8 @@ print(basename(count_files))
 
 mincov = opt$mincov
 cores = opt$numcores
+
 #===== RUN METHYLKIT =====
-#TODO: CORES
 methylrawlist = methRead(as.list(count_files),
                          sample.id = list(epi_id1, epi_id2), treatment = c(0,1), mincov=mincov,
                          assembly = 'hg19', header=FALSE, context="CpG", resolution="base",
@@ -61,3 +62,6 @@ write.table(normedratio, normedratio_name, quote=FALSE, sep=",", dec=".", row.na
 # normedratio = read.csv("E003_E004_normedratio.csv", header=TRUE, sep = ",")
 
 print("===> FINISHED!")
+end_time <- Sys.time()
+end_time - start_time
+
