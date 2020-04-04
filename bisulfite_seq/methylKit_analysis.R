@@ -1,6 +1,5 @@
 start_time <- Sys.time()
 #===== LOAD PACKAGES =====
-library("genomation", quietly=TRUE)
 library("data.table", quietly=TRUE)
 library("methylKit", quietly=TRUE)
 library("optparse", quietly=TRUE)
