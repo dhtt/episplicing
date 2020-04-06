@@ -1,7 +1,7 @@
 echo "=====> Begin counting"
 cd "$(dirname "$0")"
 
-if (test -f mRNA_seq_BEDaccessionnumber.txt)
+if (test -f mRNA_seq_BEDaccessionnumber.txt && test -f epi_ids.txt)
 then
     echo "...File requirement met."
 else
@@ -29,7 +29,7 @@ for f in backupcount_NCBI/*count.txt
 do
     ACC_NO=${f#*/}
     ACC_NO=${ACC_NO%_*}
-    ID=$(grep -ih $ACC_NO temp.txt)
+    ID=$(grep -ih $ACC_NO epi_ids.txt)
     prefix_ID=${ID%%_*}
     NEWNAME="backupcount_NCBI"/"${prefix_ID}"_"$ACC_NO"_"count.txt"
     mv $f $NEWNAME
