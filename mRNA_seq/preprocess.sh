@@ -14,7 +14,7 @@ unzip_bed(){
     ACC_NO=${f%%_*}
     echo "unzip_bed $ACC_NO" >> log_code1.txt
     if ! grep -Fxq "$ACC_NO" mRNA_seq_BEDaccessionnumber.txt
-    then 
+    then
         echo "Err: Cannot find $ACC_NO" >> log_code1.txt
     else
         gunzip $f || echo "Err: Skipping file $f" >> log_code1.txt
@@ -48,6 +48,7 @@ for f in *.bed
 do
     check_col $f &
 done
+for f in *.bed
 
 # TASK2 =====================================
 bed_to_bam(){
@@ -57,11 +58,10 @@ bed_to_bam(){
 }
 echo ".....> Converting BED to BAM"
 for f in *.bed
-do 
+do
     bed_to_bam $f &
 done
 wait
-
 
 # TASK3 =====================================
 bam_to_sam(){
@@ -71,7 +71,7 @@ bam_to_sam(){
 }
 echo ".....> Converting BAM to SAM"
 for f in *.bam
-do 
+do
     bam_to_sam $f &
 done
 wait
