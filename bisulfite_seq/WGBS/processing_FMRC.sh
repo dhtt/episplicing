@@ -19,7 +19,7 @@ echo "===> Finished separating files"
 for f in FM/E*.txt
 do
     NAME="${f#*/}"
-    paste -d"\t\t" all_chroms.txt FM/$NAME RC/$NAME > "summary/$NAME"
+    paste -d"\t\t" all_chroms.txt FM/$NAME RC/$NAME > "normalizedcounts"/"$NAME"_"count.txt"
 done
 wait
 echo "===> Finished generating counts for epigenomes"
