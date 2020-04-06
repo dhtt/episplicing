@@ -26,7 +26,7 @@ setwd(opt$countfolder)
 inDir = normalizePath(getwd())
 epi_id1 = opt$epigenome1
 epi_id2 = opt$epigenome2
-pair = paste(paste('^', epi_id1, sep=''), paste('^',  epi_id2, sep=''), sep='|')
+pair = paste(paste('^', epi_id1, ".*count.txt$", sep=''), paste('^',  epi_id2, ".*count.txt$", sep=''), sep='|')
 count_files = list.files(inDir, pattern=pair, full.names=TRUE)
 file_names = as.data.table(str_split_fixed(basename(count_files), "\\_", 3))
 gtf_files = opt$referencegenome
@@ -57,13 +57,13 @@ print("---> Saving DEXSeq normalized counts")
 dxd.count = data.frame(counts(dxd.res, normalized = TRUE))
 colnames(dxd.count) = paste(file_names$V1, file_names$V2, sep='_')
 normedcount_name = paste(paste(epi_id1, epi_id2, sep='_'), "normedcount.csv", sep='_')
-write.table(dxd.count, normedcount_name, quote=FALSE, sep=",", dec=".", row.names=TRUE, col.names=TRUE)
+write.table(dxd.count, normedcount_name, quote=FALSE, sep="\t", dec=".", row.names=FALSE, col.names=TRUE)
 # dxd.count = read.csv("temp_count.csv", header=TRUE, sep = ",")
 
 print("---> Saving DEXSeq result")
 result_name = paste(paste(epi_id1, epi_id2, sep='_'), "res.csv", sep='_')
 write.table(as.data.frame(dxd.res[c(1,2,3,5,6,7,10)]), result_name, 
-            quote=FALSE, sep=",", dec=".", row.names=FALSE, col.names=TRUE)
+            quote=FALSE, sep="\t", dec=".", row.names=FALSE, col.names=TRUE)
 # dxd.res = read.csv(result_name, header=TRUE, sep = ",")
 
 print("===> FINISHED!")
