@@ -5,6 +5,7 @@ library("data.table", quietly=TRUE)
 library("dplyr", quietly=TRUE)
 library("DEXSeq", quietly=TRUE)
 library("optparse", quietly=TRUE)
+library("BiocParallel")
 suppressPackageStartupMessages( library( "DEXSeq" ) )
 
 option_list = list(
@@ -15,7 +16,9 @@ option_list = list(
   make_option(c("-b", "--epigenome2"), type="character", default=NULL, 
               help="ID of second epigenome", metavar="character"),
   make_option(c("-g", "--referencegenome"), type="character", default="/Users/dhthutrang/Documents/BIOINFO/Episplicing/episplicing/mrna_seq/reference_genome.gtf", 
-              help="path to flattened reference genome", metavar="character")
+              help="path to flattened reference genome", metavar="character"),
+  make_option(c("-n", "--numcores"), type="integer", default=1, 
+              help="number of processing cores", metavar="character")
 )
 
 opt_parser = OptionParser(option_list=option_list)
@@ -30,6 +33,7 @@ pair = paste(paste('^', epi_id1, ".*count.txt$", sep=''), paste('^',  epi_id2, "
 count_files = list.files(inDir, pattern=pair, full.names=TRUE)
 file_names = as.data.table(str_split_fixed(basename(count_files), "\\_", 3))
 gtf_files = opt$referencegenome
+cores = MulticoreParam(opt$numcores)
 
 print(paste("---> Working folder: ", opt$countfolder, sep=''))
 print("---> Count files: ")
@@ -50,7 +54,7 @@ dxd = DEXSeqDataSetFromHTSeq(
 )
 
 print("---> Getting DEXSeq result")
-dxd.res = DEXSeq(dxd, quiet = FALSE)
+dxd.res = DEXSeq(dxd, quiet = FALSE, BPPARAM=cores)
 
 #===== SAVING RESULTS =====
 print("---> Saving DEXSeq normalized counts")
