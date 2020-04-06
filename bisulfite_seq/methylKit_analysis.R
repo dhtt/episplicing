@@ -36,6 +36,7 @@ mincov = opt$mincov
 cores = opt$numcores
 
 #===== RUN METHYLKIT =====
+print("---> Running MethylKit")
 methylrawlist = methRead(as.list(count_files),
                          sample.id = list(epi_id1, epi_id2), treatment = c(0,1), mincov=mincov,
                          assembly = 'hg19', header=FALSE, context="CpG", resolution="base",
@@ -57,7 +58,7 @@ ratio2 = normalized_methylrawlist.united$numCs2/normalized_methylrawlist.united$
 normedratio = data.frame(cbind(getData(normalized_methylrawlist.united)[,1:4], ratio1, ratio2))
 colnames(normedratio) = c(colnames(normedratio)[1:4], c(epi_id1, epi_id2))
 normedratio_name = paste(paste(epi_id1, epi_id2, sep='_'), "normedratio.csv", sep='_')
-write.table(normedratio, normedratio_name, quote=FALSE, sep=",", dec=".", row.names=TRUE, col.names=TRUE)
+write.table(normedratio, normedratio_name, quote=FALSE, sep="\t", dec=".", row.names=FALSE, col.names=FALSE)
 # normedratio = read.csv("E003_E004_normedratio.csv", header=TRUE, sep = ",")
 
 print("===> FINISHED!")
