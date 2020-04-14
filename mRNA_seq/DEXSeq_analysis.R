@@ -58,8 +58,8 @@ dxd.res = DEXSeq(dxd, quiet = FALSE, BPPARAM=cores)
 
 #===== SAVING RESULTS =====
 print("---> Saving DEXSeq normalized counts")
-dxd.count = data.frame(counts(dxd.res, normalized = TRUE))
-colnames(dxd.count) = paste(file_names$V1, file_names$V2, sep='_')
+dxd.count = data.frame(cbind(dxd.res[c(1,2)], counts(dxd.res, normalized = TRUE)))
+colnames(dxd.count) = c("groupID", "featureID", paste(file_names$V1, file_names$V2, sep='_'))
 normedcount_name = paste(paste(epi_id1, epi_id2, sep='_'), "normedcount.csv", sep='_')
 write.table(dxd.count, normedcount_name, quote=FALSE, sep="\t", dec=".", row.names=FALSE, col.names=TRUE)
 # dxd.count = read.csv("temp_count.csv", header=TRUE, sep = ",")
