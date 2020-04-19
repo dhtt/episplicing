@@ -1,17 +1,32 @@
 echo "===> Begin annotating"
-for d in E*/ #get all xls out in normalizedcounts folder
+#Get chr, start, end, M-value, p-value, normedcount1, normedcount2
+echo "===> 1: Get chr, start, end, M-value, p-value, normedcount1, normedcount2"
+for x in E*/*.xls
 do
-    echo "$d"
-    for x in $d/*.xls; do awk '{print $1"\t"$2"\t"$3"\t"$9"\t"$10}' $x > $x.bed; done
-    cp $d/*.xls.bed normalizedcounts
+        awk '{print $1"\t"$2"\t"$3"\t"$5"\t"$7"\t"$9"\t"$10}' $x > $x.bed
 done
 
-for f in normalizedcounts/*.bed #annotate all xls.bed in normalizedcounts into annotatedcounts
+#get all xls.bed out in normalizedcounts folder
+echo "===> 2: Move all xls.bed out in normalizedcounts folder"
+for d in E*/
+do
+    #echo "$d"
+    cp $d/*.xls.bed normalizedcounts
+    rm $d/*.xls.bed
+done
+
+#annotate all xls.bed in normalizedcounts into annotatedcounts
+echo "===> 3: Annotate all xls.bed in normalizedcounts into annotatedcounts"
+for f in normalizedcounts/*.bed
 do  
-    (echo $f
+    (
+    #echo $f
     FILENAME="${f#*/}.txt"
     bedtools intersect -a $REFGEN/reference_genome.gtf -b $f -wo -loj -bed > annotatedcounts/$FILENAME 
-    grep -v "aggregate_gene" annotatedcounts/$FILENAME > annotatedcounts/"exon_$FILENAME") &
+    bedtools intersect -a $REFGEN/reference_genome.promoter_intron.gtf -b $f -wo -loj -bed > annotatedcounts/"pi_$FILENAME"
+    grep -v "aggregate_gene" annotatedcounts/$FILENAME > annotatedcounts/"exon_$FILENAME"
+    rm annotatedcounts/$FILENAME
+    ) &
     
 done 
 wait

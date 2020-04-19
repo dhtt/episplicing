@@ -49,8 +49,11 @@ normalized_methylrawlist.united = unite(normalized_methylrawlist, destrand=FALSE
 #===== SAVING RESULTS =====
 print("---> Saving MethylKit result")
 diffmeth = calculateDiffMeth(normalized_methylrawlist.united, adjust='fdr', mc.cores = cores, 
-                             save.db = TRUE, suffix = paste(epi_id1, epi_id2, sep='_'))
+                             save.db = FALSE, suffix = paste(epi_id1, epi_id2, sep='_'))
 # diffmeth.df = data.frame(diffmeth)
+myDiff25p = getMethylDiff(diffmeth,difference=25,qvalue=0.05)
+diff_name = paste(paste(epi_id1, epi_id2, sep='_'), "diff.txt", sep='_')
+fwrite(myDiff25p, diff_name, quote=FALSE, sep="\t", dec=".", row.names=FALSE, col.names=FALSE)
 
 print("---> Saving MethylKit normalized methylation ratio")
 ratio1 = normalized_methylrawlist.united$numCs1/normalized_methylrawlist.united$coverage1
@@ -64,4 +67,3 @@ write.table(normedratio, normedratio_name, quote=FALSE, sep="\t", dec=".", row.n
 print("===> FINISHED!")
 end_time <- Sys.time()
 end_time - start_time
-
