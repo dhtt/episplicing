@@ -59,12 +59,13 @@ prepare_methylation_count <- function(methylation.table){
   return(count)
 }
 prepare_histone_count <- function(histone.table){
-  histone.table = data.frame(histone.table[,c(1,4,5,7,9,13,14)])
-  histone.table$V13 = as.numeric(as.character(histone.table$V13))
-  histone.table$V14 = as.numeric(as.character(histone.table$V14))
-  histone.table$V13[is.na(histone.table$V13)] = 0
-  histone.table$V14[histone.table$V14 < 0] = 0
-  histone.table.aggregate <- aggregate(list(readcov_1 = histone.table$V13, readcov_2 = histone.table$V14),
+  histone.table = data.frame(histone.table[,c(1,4,5,7,9,15,16)])
+  histone.table$V15 = as.numeric(as.character(histone.table$V15))
+  histone.table$V16 = as.numeric(as.character(histone.table$V16))
+  histone.table$V15[is.na(histone.table$V15)] = 0
+  histone.table$V16[histone.table$V16 < 0] = 0
+  histone.table$V16[is.na(histone.table$V16)] = 0
+  histone.table.aggregate <- aggregate(list(readcov_1 = histone.table$V15, readcov_2 = histone.table$V16),
                                        FUN=mean,
                                        by = list(chr = histone.table$V1, start = histone.table$V4,
                                                  end = histone.table$V5, strand = histone.table$V7, gene_id = histone.table$V9))
@@ -76,7 +77,7 @@ prepare_histone_count <- function(histone.table){
   count = data.frame(count[order(count$V1),])
   rownames(count) = count$V1
   count = count[,2:3]
-  # colnames(count) = c(epi_id1, epi_id2)
+  colnames(count) = c(epi_id1, epi_id2)
   return(count)
 }
 
@@ -142,15 +143,8 @@ H3K36me3.count1 = prepare_countfile("H3K36me3", epi_id1, epi_id2)
 H3K36me3.count2 = prepare_countfile("H3K36me3", epi_id1, epi_id3)
 H3K36me3.count3 = prepare_countfile("H3K36me3", epi_id2, epi_id3)
 
-H3K27ac.count1 = prepare_countfile("H3K27ac", epi_id1, epi_id2)
-H3K27ac.count2 = prepare_countfile("H3K27ac", epi_id1, epi_id3)
-H3K27ac.count3 = prepare_countfile("H3K27ac", epi_id2, epi_id3)
-
+# H3K27ac.count1 = prepare_countfile("H3K27ac", epi_id1, epi_id2)
+# H3K27ac.count2 = prepare_countfile("H3K27ac", epi_id1, epi_id3)
+# H3K27ac.count3 = prepare_countfile("H3K27ac", epi_id2, epi_id3)
 
 #===========================================
-#1: ca 2 >= 0.75, 2: 1 > 0.75, 3: ca 2 duoi 0.75
-methylKit:::readMethylBaseDB("/Users/dhthutrang/metDB/methylDB\ 2020-04-06\ M3E/methylDiff_E003_E005.txt.bgz",
-                             sample.ids = c("E003", "E004"), assembly = 'hg19', context="CpG", resolution="base",
-                             dbtype="tabix", treatment = c(0,1), destranded=FALSE)
-
-
