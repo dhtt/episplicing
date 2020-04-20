@@ -5,15 +5,15 @@ library("methylKit", quietly=TRUE)
 library("optparse", quietly=TRUE)
 
 option_list = list(
-  make_option(c("-f", "--countfolder"), type="character", default="/Users/dhthutrang/Documents/BIOINFO/Episplicing/files/Result/combine/methylation", 
+  make_option(c("-f", "--countfolder"), type="character", default="/Users/dhthutrang/Documents/BIOINFO/Episplicing/files/Result/combine/methylation",
               help="path to folder of counts", metavar="character"),
-  make_option(c("-a", "--epigenome1"), type="character", default=NULL, 
+  make_option(c("-a", "--epigenome1"), type="character", default=NULL,
               help="ID of first epigenome", metavar="character"),
-  make_option(c("-b", "--epigenome2"), type="character", default=NULL, 
+  make_option(c("-b", "--epigenome2"), type="character", default=NULL,
               help="ID of second epigenome", metavar="character"),
-  make_option(c("-c", "--mincov"), type="integer", default=10, 
+  make_option(c("-c", "--mincov"), type="integer", default=10,
               help="minimum coverage to be included", metavar="character"),
-  make_option(c("-n", "--numcores"), type="integer", default=1, 
+  make_option(c("-n", "--numcores"), type="integer", default=1,
               help="number of processing cores", metavar="character")
 )
 
@@ -40,18 +40,18 @@ print("---> Running MethylKit")
 methylrawlist = methRead(as.list(count_files),
                          sample.id = list(epi_id1, epi_id2), treatment = c(0,1), mincov=mincov,
                          assembly = 'hg19', header=FALSE, context="CpG", resolution="base",
-                         pipeline=list(fraction=TRUE, chr.col=1, start.col=2, end.col=2, 
+                         pipeline=list(fraction=TRUE, chr.col=1, start.col=2, end.col=2,
                                        strand.col=3, freqC.col=4, coverage.col=5))
 
-normalized_methylrawlist = normalizeCoverage(methylrawlist, method = "median", adjust = "fdr") 
+normalized_methylrawlist = normalizeCoverage(methylrawlist, method = "median", adjust = "fdr")
 normalized_methylrawlist.united = unite(normalized_methylrawlist, destrand=FALSE, mc.cores = cores)
 
 #===== SAVING RESULTS =====
 print("---> Saving MethylKit result")
-diffmeth = calculateDiffMeth(normalized_methylrawlist.united, adjust='fdr', mc.cores = cores, 
+diffmeth = calculateDiffMeth(normalized_methylrawlist.united, adjust='fdr', mc.cores = cores,
                              save.db = FALSE, suffix = paste(epi_id1, epi_id2, sep='_'))
 # diffmeth.df = data.frame(diffmeth)
-myDiff25p = getMethylDiff(diffmeth,difference=25,qvalue=0.05)
+myDiff25p = getMethylDiff(diffmeth,difference = 25,qvalue = 0.05)
 diff_name = paste(paste(epi_id1, epi_id2, sep='_'), "diff.txt", sep='_')
 fwrite(myDiff25p, diff_name, quote=FALSE, sep="\t", dec=".", row.names=FALSE, col.names=FALSE)
 

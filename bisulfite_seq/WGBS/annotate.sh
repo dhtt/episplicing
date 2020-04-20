@@ -17,7 +17,7 @@ wait
 
 #annotate all methdiff25 in diff into annotateddiff
 echo "===> 2: Annotate all methdiff25 in diff into annotateddiff"
-for f in diff/*diff.txt
+for f in normalizedcounts/*diff.txt
 do
     (
     echo $f
