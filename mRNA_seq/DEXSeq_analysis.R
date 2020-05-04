@@ -26,14 +26,19 @@ opt = parse_args(opt_parser)
 
 #===== PREPARE DATA =====
 setwd(opt$countfolder)
+setwd("~/Documents/BIOINFO/Episplicing/files/Result/combine/expression")
 inDir = normalizePath(getwd())
 epi_id1 = opt$epigenome1
 epi_id2 = opt$epigenome2
+# epi_id1 = "E004"
+# epi_id2 = "E005"
 pair = paste(paste('^', epi_id1, ".*count.txt$", sep=''), paste('^',  epi_id2, ".*count.txt$", sep=''), sep='|')
 count_files = list.files(inDir, pattern=pair, full.names=TRUE)
 file_names = as.data.table(str_split_fixed(basename(count_files), "\\_", 3))
 gtf_files = opt$referencegenome
+# gtf_files = "/Users/dhthutrang/Documents/BIOINFO/Episplicing/episplicing/mrna_seq/reference_genome.gtf"
 cores = MulticoreParam(opt$numcores)
+# cores = 4
 
 print(paste("---> Working folder: ", opt$countfolder, sep=''))
 print("---> Count files: ")
@@ -70,7 +75,32 @@ write.table(as.data.frame(dxd.res[c(1,2,3,5,6,7,10)]), result_name,
             quote=FALSE, sep="\t", dec=".", row.names=FALSE, col.names=TRUE)
 # dxd.res = read.csv(result_name, header=TRUE, sep = ",")
 
+print("---> Exporting HTML DEXSeq result")
+html_name = paste(paste(epi_id1, epi_id2, sep='_'), "html", sep='_')
+DEXSeqHTML(dxd.res, 
+           path = html_name,
+           FDR=0.05, color=c("#FF000080", "#0000FF80"),
+           BPPARAM = cores)
+
+
 print("===> FINISHED!")
 end_time <- Sys.time()
 end_time - start_time
+
+
+par(bg = "white",
+    cex.axis = 0.8,
+    fg = "black",
+    pty = "m"
+    )
+tiff("E2F1_DEU.tiff", units="in", width=10, height=5, res=300)
+plotDEXSeq(dxd.res, geneID = "E2F1" , splicing = TRUE, expression = FALSE
+           , legend = TRUE
+           , color=c("#EE442F", "#63ACBE")
+           )
+
+dev.off()
+
+
+
 
