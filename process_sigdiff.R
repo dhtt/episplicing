@@ -18,7 +18,7 @@ prepare_metdiff <- function(metdiff_tables_list){
     metdiff_table$V16 = as.numeric(as.character(metdiff_table$V16))
     metdiff_table = metdiff_table[, c(1,4,5,7,9,14,15,16)]
     colnames(metdiff_table) = c("chr", "start", "end", "strand", "id", "p-val", "q-val", "metdiff")
-    metdiff_tables_list[[i]] = metdiff_table[metdiff_table$`q-val` <= 0.05 & !is.na(metdiff_table$`q-val`) & abs(metdiff_table$`metdiff`) >= 25, ]
+    metdiff_tables_list[[i]] = metdiff_table[metdiff_table$`q-val` <= 0.05 & !is.na(metdiff_table$`q-val`) & abs(metdiff_table$`metdiff`) >= 75, ]
   }
   return(metdiff_tables_list)
 }
@@ -147,7 +147,7 @@ pair1_2.h3k27ac = get_his_diff("H3K27ac",epi_id1, epi_id2)
 pair1_2.exp = get_exp_diff(epi_id1, epi_id2) 
 
 pair1_2.epg = intersect(pair1_2.exp, union(pair1_2.met, union(pair1_2.h3k36me3, pair1_2.h3k27ac)))
-paste(pair1_2.epg, collapse = ",")
+# paste(pair1_2.epg, collapse = ",")
 #===== Pair 2 =====
 pair1_3.met = get_met_diff(epi_id1, epi_id3)
 pair1_3.h3k36me3 = get_his_diff("H3K36me3",epi_id1, epi_id3) 
@@ -155,7 +155,8 @@ pair1_3.h3k27ac = get_his_diff("H3K27ac",epi_id1, epi_id3)
 pair1_3.exp = get_exp_diff(epi_id1, epi_id3) 
 
 pair1_3.epg = intersect(pair1_3.exp, union(pair1_3.met, union(pair1_3.h3k36me3, pair1_3.h3k27ac)))
-paste(pair1_3.epg, collapse = ",")
+# paste(pair1_3.epg, collapse = ",")
+
 #===== Pair 3 =====
 pair2_3.met = get_met_diff(epi_id2, epi_id3)
 pair2_3.h3k36me3 = get_his_diff("H3K36me3",epi_id2, epi_id3) 
@@ -163,7 +164,8 @@ pair2_3.h3k27ac = get_his_diff("H3K27ac",epi_id2, epi_id3)
 pair2_3.exp = get_exp_diff(epi_id2, epi_id3) 
 
 pair2_3.epg = intersect(pair2_3.exp, union(pair2_3.met, union(pair2_3.h3k36me3, pair2_3.h3k27ac)))
-paste(pair2_3.epg, collapse = ",")
+# paste(pair2_3.epg, collapse = ",")
+
 #===== Pair 4 =====
 pair4_5.met = get_met_diff(epi_id4, epi_id5)
 pair4_5.h3k36me3 = get_his_diff("H3K36me3",epi_id4, epi_id5) 
@@ -171,7 +173,7 @@ pair4_5.h3k27ac = get_his_diff("H3K27ac",epi_id4, epi_id5)
 pair4_5.exp = get_exp_diff(epi_id4, epi_id5) 
 
 pair4_5.epg = intersect(pair4_5.exp, union(pair4_5.met, union(pair4_5.h3k36me3, pair4_5.h3k27ac)))
-paste(pair4_5.epg, collapse = ",")
+# paste(pair4_5.epg, collapse = ",")
 
 #===== Pair 5 =====
 pair4_6.met = get_met_diff(epi_id4, epi_id6)
@@ -180,7 +182,7 @@ pair4_6.h3k27ac = get_his_diff("H3K27ac", epi_id4, epi_id6)
 pair4_6.exp = get_exp_diff(epi_id4, epi_id6) 
 
 pair4_6.epg = intersect(pair4_6.exp, union(pair4_6.met, union(pair4_6.h3k36me3, pair4_6.h3k27ac)))
-paste(pair2_3.epg, collapse = ",")
+# paste(pair2_3.epg, collapse = ",")
 
 #===== Pair 6 =====
 pair5_6.met = get_met_diff(epi_id5, epi_id6)
@@ -189,7 +191,7 @@ pair5_6.h3k27ac = get_his_diff("H3K27ac", epi_id5, epi_id6)
 pair5_6.exp = get_exp_diff(epi_id5, epi_id6) 
 
 pair5_6.epg = intersect(pair5_6.exp, union(pair5_6.met, union(pair5_6.h3k36me3, pair5_6.h3k27ac)))
-paste(pair2_3.epg, collapse = ",")
+# paste(pair2_3.epg, collapse = ",")
 
 #===== Differential genes =====
 tot_epg = list(pair1_2.epg, pair1_3.epg, pair2_3.epg, pair4_5.epg, pair4_6.epg, pair5_6.epg)
@@ -212,15 +214,40 @@ tot_h3k27ac = list(pair1_2.h3k27ac, pair1_3.h3k27ac, pair2_3.h3k27ac,
                     pair4_5.h3k27ac, pair4_6.h3k27ac, pair5_6.h3k27ac)
 tot_exp = list(pair1_2.exp, pair1_3.exp, pair2_3.exp, pair4_5.exp, pair4_6.exp, pair5_6.exp)
 #-------
+no_met_genes = as.data.table(lapply(tot_met, function(x) length(x)))
+no_h3k36me3_genes = as.data.table(lapply(tot_h3k36me3, function(x) length(x)))
+no_H3K27ac_genes = as.data.table(lapply(tot_h3k27ac, function(x) length(x)))
+no_exp_genes = as.data.table(lapply(tot_exp, function(x) length(x)))
+
+tissue_stat = as.data.table(t(rbind(no_exp_genes, no_met_genes, no_h3k36me3_genes, no_H3K27ac_genes)))
+tissue_stat = rbind(tissue_stat, all_tissue_stat)
+tissue_id = data.frame(c("ESC", "ESC", "Mesendoderm", "Gastric", "Gastric", "Ventricle", " "),
+                       c("Mesendoderm", "Trophoblast", "Trophoblast", "Ventricle", "Lung", "Lung", "Total"))
+tissue_stat = cbind(tissue_id, tissue_stat)
+
+colnames(tissue_stat) = c("Tissue 1", "Tissue 2", "DEU", "Methylation", "H3K36me3", "H3K27ac")
+
+library(formattable)
+tissue_formatter <- formatter("span", 
+                              style = x ~ style(
+                                width = suffix(x, "px"),
+                                font.weight = "bold", 
+                                color = ifelse(x == "Total", "black", "gray")))
+formattable(tissue_stat,
+            align =c("l", "l", "c","c","c","c"), 
+            list(`Tissue 1` = tissue_formatter,
+                 `Tissue 2` = tissue_formatter,
+                 `DEU` = color_tile("white", "wheat"),
+                 `Methylation` = color_tile("white", "wheat"),
+                 `H3K36me3` = color_tile("white", "wheat"),
+                 `H3K27ac` = color_tile("white", "wheat")
+            )
+)
+#-------
 all_met_genes = Reduce(union, tot_met)
 all_h3k36me3_genes = Reduce(union, tot_h3k36me3)
 all_h3k27ac_genes = Reduce(union, tot_h3k27ac)
 all_exp_genes = Reduce(union, tot_exp)
-# 
-# example_genes = as.data.frame(intersect(all_exp_genes, intersect(all_h3k27ac_genes, intersect(all_met_genes, all_h3k36me3_genes))))
-# head(example_genes)
-# ex1 = "SMAD3"
-# ex1 = "NANOG;"
 
 #-------
 exp_by_tissue = list(union(pair1_2.exp, pair1_3.exp), union(pair1_2.exp, pair2_3.exp),

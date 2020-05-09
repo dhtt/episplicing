@@ -24,8 +24,9 @@ col.highlight = "#fffa70"
 fontsize.title = 11
 type.color = c("#EE442F", "#63ACBE")
 gene_name = "SYNPO"
+margin = c(20, 20)
 
-grtrack <- GeneRegionTrack(SYNPO.gtf, 
+grtrack <- GeneRegionTrack(SYNPO.gtf,
                            genome = gen, chromosome = chr,
                            name = "Transcripts",
                            transcriptAnnotation = "transcript",
@@ -45,7 +46,7 @@ prepare_hisdiff_example <- function(type, epi_id1, epi_id2, gene){
   hisdiff.pi = fread(hisdiff.diff[[2]], header=FALSE, stringsAsFactors = FALSE, quote=FALSE)
   print(head(hisdiff.pi$V9))
   hisdiff_tables_list = list(hisdiff.exon, hisdiff.pi)
-  
+
   for (i in range(1:2)){
     hisdiff_table = hisdiff_tables_list[[i]]
     hisdiff_table <- hisdiff_table %>%
@@ -57,7 +58,7 @@ prepare_hisdiff_example <- function(type, epi_id1, epi_id2, gene){
              V13 = if_else(is.na(V13), 0, V13), V14 = if_else(is.na(V14), 1, V14),
              V17 = V9) %>%
       dplyr::select(c(1,3,7,11,12,13,14,15,16,17))
-    
+
     colnames(hisdiff_table) = c("chr", "feature", "strand", "start", "end","m-val","p_val", epi_id1, epi_id2, "gene")
     if (i == 1){
       hisdiff_table$feature = "exon"
@@ -72,7 +73,7 @@ SYNPO.H3K27ac = as(SYNPO.H3K27ac, "GRanges")
 SYNPO.H3K27ac.counts = SYNPO.H3K27ac[, c("E094","E095")]
 #ADJUST THRESHOLD OFR HISTONE DIFERENTLY -> top N REGIONS(here n = 14)
 SYNPO.H3K27ac.sig = as.data.frame((SYNPO.H3K27ac[abs(SYNPO.H3K27ac$`m-val`) >= 2 & SYNPO.H3K27ac$`p_val` <= 0.05]))
-
+temp = data.frame(SYNPO.H3K27ac)
 
 SYNPO.H3K36me3 = prepare_hisdiff_example("H3K36me3", "E094", "E095", "SYNPO")
 SYNPO.H3K36me3 = rbind(SYNPO.H3K36me3[[1]], SYNPO.H3K36me3[[2]])
@@ -81,33 +82,29 @@ SYNPO.H3K36me3.counts = SYNPO.H3K36me3[, c("E094","E095")]
 #ADJUST THRESHOLD OFR HISTONE DIFERENTLY -> top N REGIONS(here n = 14)
 SYNPO.H3K36me3.sig = as.data.frame((SYNPO.H3K36me3[SYNPO.H3K36me3$`p_val` <= 0.05]))
 
-hTrack1 <- DataTrack(SYNPO.H3K27ac.counts, name = "H3K27ac", 
+hTrack1 <- DataTrack(SYNPO.H3K27ac.counts, name = "H3K27ac",
                      type = c("a"), legend = FALSE,
                      col = type.color)
-hTrack2 <- DataTrack(SYNPO.H3K36me3.counts, name = "H3K36me3", 
+hTrack2 <- DataTrack(SYNPO.H3K36me3.counts, name = "H3K36me3",
                      type = c("a"), legend = FALSE,
                      col = type.color)
 
-ht1 <- HighlightTrack(trackList = hTrack1, chromosome = 5, 
-                      start = SYNPO.H3K27ac.sig$start  - 1000, 
-                      width = SYNPO.H3K27ac.sig$width  + 1000,
+ht1 <- HighlightTrack(trackList = hTrack1, chromosome = 5,
+                      start = SYNPO.H3K27ac.sig$start  - 500,
+                      end = SYNPO.H3K27ac.sig$end  + 500,
                       col = col.highlight, fill = col.highlight)
-ht2 <- HighlightTrack(trackList = hTrack2, chromosome = 5, 
-                      start = SYNPO.H3K36me3.sig$start - 1000, 
-                      width = SYNPO.H3K36me3.sig$width + 1000,
+ht2 <- HighlightTrack(trackList = hTrack2, chromosome = 5,
+                      start = SYNPO.H3K36me3.sig$start - 500,
+                      end = SYNPO.H3K36me3.sig$end + 500,
                       col = col.highlight, fill = col.highlight)
-# ht1 <- HighlightTrack(trackList = dTrack1, chromosome = 5,
-#                       start = c(112231319, 112220770),
-#                       end=c(112232684, 112221422))
-# ht2 <- HighlightTrack(trackList = dTrack2, chromosome = 5,
-#                       start = c(112213796),
-#                       end = c(112214829))
 
 plotTracks(list(itrack, gtrack, grtrack, ht1, ht2),
            extend.left = 2500, extend.right = 2500,
            groups = c("E094","E095"))
 #======Read met  =========
 prepare_metdiff_example <- function(epi_id1, epi_id2, gene){
+  print("For this to work, subsetting met_count files containing only
+  the gene of investigation is needed in annotated count. Make sure there is only that")
   gene = paste(gene, '\"', sep = '')
   file_path = normalizePath(paste(getwd(), "methylation", "annotatedcounts", sep='/'))
   pair = paste(paste('^pi', paste(epi_id1, epi_id2, sep='_'), sep='_'),
@@ -116,7 +113,7 @@ prepare_metdiff_example <- function(epi_id1, epi_id2, gene){
   metdiff.exon = fread(metdiff.diff[[1]], header=FALSE, stringsAsFactors = FALSE, quote=FALSE)
   metdiff.pi = fread(metdiff.diff[[2]], header=FALSE, stringsAsFactors = FALSE, quote=FALSE)
   metdiff_tables_list = list(metdiff.exon, metdiff.pi)
-  
+
   for (i in range(1:2)){
     metdiff_table = metdiff_tables_list[[i]]
     metdiff_table <- metdiff_table %>%
@@ -126,7 +123,7 @@ prepare_metdiff_example <- function(epi_id1, epi_id2, gene){
              V14 = if_else(is.na(V14), 0, V14), V15 = if_else(is.na(V15), 0, V15),
              V16 = gene) %>%
       dplyr::select(c(1,3,7,11,12,14,15,16))
-    
+
     colnames(metdiff_table) = c("chr", "feature", "strand", "start", "end", epi_id1, epi_id2, "gene")
     if (i == 1){
       metdiff_table$feature = "exon"
@@ -144,7 +141,7 @@ get_sig_met <- function(epi_id1, epi_id2, gene, thres_metdiff){
   metdiff.exon = fread(metdiff.diff[[1]], header=FALSE, stringsAsFactors = FALSE, quote=FALSE)
   metdiff.pi = fread(metdiff.diff[[2]], header=FALSE, stringsAsFactors = FALSE, quote=FALSE)
   metdiff_tables_list = list(metdiff.exon, metdiff.pi)
-  
+
   for (i in range(1:2)){
     metdiff_table = metdiff_tables_list[[i]]
     metdiff_table <- metdiff_table %>%
@@ -154,7 +151,7 @@ get_sig_met <- function(epi_id1, epi_id2, gene, thres_metdiff){
              V15 = if_else(is.na(V15), 1, V15), V16 = if_else(is.na(V16), 0, V16),
              V17 = gene) %>%
       dplyr::select(c(1,3,7,11,12,15,16,17))
-    
+
     colnames(metdiff_table) = c("chr", "feature", "strand", "start", "end", "q-val", "metdiff","gene")
     if (i == 1){
       metdiff_table$feature = "exon"
@@ -168,7 +165,7 @@ get_sig_met <- function(epi_id1, epi_id2, gene, thres_metdiff){
 SYNPO.met = prepare_metdiff_example("E094", "E095", "SYNPO")
 SYNPO.met = rbind(SYNPO.met[[1]], SYNPO.met[[2]])
 SYNPO.met = as(SYNPO.met, "GRanges")
-mTrack <- DataTrack(SYNPO.met, name = "Methylation", 
+mTrack <- DataTrack(SYNPO.met, name = "Methylation",
                     type = c("smooth"), span = 0.02,
                     col = type.color,
                     legend = TRUE)
@@ -178,9 +175,9 @@ SYNPO.met.sig = rbind(SYNPO.met.sig[[1]], SYNPO.met.sig[[2]])
 SYNPO.met.sig = as(SYNPO.met.sig, "GRanges")
 SYNPO.met.sig = as.data.frame(SYNPO.met.sig)
 
-ht3 <- HighlightTrack(trackList = mTrack, chromosome = 5, 
-                      start = SYNPO.met.sig$start - 1000, 
-                      width = SYNPO.met.sig$width + 1000,
+ht3 <- HighlightTrack(trackList = mTrack, chromosome = 5,
+                      start = SYNPO.met.sig$start - 500,
+                      end = SYNPO.met.sig$end + 500,
                       col = "#fffa70", fill = "#fffa70")
 plotTracks(list(grtrack, ht1, ht2, ht3, gtrack, itrack),
            # extend.left = 2500, extend.right = 2500,
@@ -197,7 +194,7 @@ SYNPO.exp$gene = "SYNPO"
 SYNPO.exp = as(SYNPO.exp, "GRanges")
 SYNPO.exp.counts = SYNPO.exp[, c("E094","E095")]
 eTrack <- DataTrack(SYNPO.exp.counts, name = "Expression",
-                    type = c("h"), 
+                    type = c("h"),
                     fill = "85c0f9")
 
 SYNPO.exp.sig = SYNPO.exp[, "padj"]
@@ -219,9 +216,7 @@ plotTracks(list(itrack, gtrack,ht4, ht1, ht2, ht3),
            background.title = background.title,
            fontsize.title = fontsize.title,
            col.title = col.title,
-           groups = c("E094","E095"),
-           margin = c(20, 20))
+           groups = c("Gastric","Ventricle"),
+           margin = margin)
 dev.off()
-# temp = as.data.frame(SYNPO.exp.counts)
-# 
-# temp$start + temp$width/2
+

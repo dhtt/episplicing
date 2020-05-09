@@ -36,3 +36,9 @@ do
 done
 
 echo "=====> Finished counting"
+
+while read p; 
+do
+    scp $p example7
+done < example7.txt #temp.txt is accession_number (with order sometimes)
+wait

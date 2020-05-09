@@ -9,15 +9,15 @@ library("BiocParallel")
 suppressPackageStartupMessages( library( "DEXSeq" ) )
 
 option_list = list(
-  make_option(c("-f", "--countfolder"), type="character", default="~/Documents/BIOINFO/Episplicing/files/Result/combine/expression", 
+  make_option(c("-f", "--countfolder"), type="character", default="~/Documents/BIOINFO/Episplicing/files/Result/combine/expression",
               help="path to folder of counts", metavar="character"),
-  make_option(c("-a", "--epigenome1"), type="character", default=NULL, 
+  make_option(c("-a", "--epigenome1"), type="character", default=NULL,
               help="ID of first epigenome", metavar="character"),
-  make_option(c("-b", "--epigenome2"), type="character", default=NULL, 
+  make_option(c("-b", "--epigenome2"), type="character", default=NULL,
               help="ID of second epigenome", metavar="character"),
-  make_option(c("-g", "--referencegenome"), type="character", default="/Users/dhthutrang/Documents/BIOINFO/Episplicing/episplicing/mrna_seq/reference_genome.gtf", 
+  make_option(c("-g", "--referencegenome"), type="character", default="/Users/dhthutrang/Documents/BIOINFO/Episplicing/episplicing/mrna_seq/reference_genome.gtf",
               help="path to flattened reference genome", metavar="character"),
-  make_option(c("-n", "--numcores"), type="integer", default=1, 
+  make_option(c("-n", "--numcores"), type="integer", default=1,
               help="number of processing cores", metavar="character")
 )
 
@@ -26,31 +26,30 @@ opt = parse_args(opt_parser)
 
 #===== PREPARE DATA =====
 setwd(opt$countfolder)
-setwd("~/Documents/BIOINFO/Episplicing/files/Result/combine/expression")
 inDir = normalizePath(getwd())
 epi_id1 = opt$epigenome1
 epi_id2 = opt$epigenome2
-# epi_id1 = "E004"
-# epi_id2 = "E005"
 pair = paste(paste('^', epi_id1, ".*count.txt$", sep=''), paste('^',  epi_id2, ".*count.txt$", sep=''), sep='|')
 count_files = list.files(inDir, pattern=pair, full.names=TRUE)
 file_names = as.data.table(str_split_fixed(basename(count_files), "\\_", 3))
 gtf_files = opt$referencegenome
-# gtf_files = "/Users/dhthutrang/Documents/BIOINFO/Episplicing/episplicing/mrna_seq/reference_genome.gtf"
+log_name = file(paste(paste(epi_id1, epi_id2, sep='_'), "log", sep='.'), open = "wt")
 cores = MulticoreParam(opt$numcores)
-# cores = 4
 
-print(paste("---> Working folder: ", opt$countfolder, sep=''))
-print("---> Count files: ")
-print(basename(count_files))
-print(paste("---> Reference genome: ", gtf_files, sep=''))
+sink(log_name, type = c("output", "message"))
+
+
+cat(paste("---> Working folder: ", opt$countfolder, sep=''), append = TRUE)
+cat("\n---> Count files: ", append = TRUE)
+cat(basename(count_files), append = TRUE)
+cat(paste("\n---> Reference genome: ", gtf_files, sep=''), append = TRUE)
 
 sampleTable = data.frame(
   row.names = c(file_names$V2),
   condition = c(file_names$V1))
 
 #===== RUN DEXSEQ =====
-print("---> Inputting to DEXSeq")
+cat("\n---> Inputting to DEXSeq", append = TRUE)
 dxd = DEXSeqDataSetFromHTSeq(
   count_files,
   sampleData = sampleTable,
@@ -58,49 +57,33 @@ dxd = DEXSeqDataSetFromHTSeq(
   flattenedfile= normalizePath(gtf_files)
 )
 
-print("---> Getting DEXSeq result")
+cat("\n---> Getting DEXSeq result", append = TRUE)
 dxd.res = DEXSeq(dxd, quiet = FALSE, BPPARAM=cores)
 
 #===== SAVING RESULTS =====
-print("---> Saving DEXSeq normalized counts")
+cat("\n---> Saving DEXSeq normalized counts", append = TRUE)
 dxd.count = data.frame(cbind(dxd.res[c(1,2)], counts(dxd.res, normalized = TRUE)))
 colnames(dxd.count) = c("groupID", "featureID", paste(file_names$V1, file_names$V2, sep='_'))
 normedcount_name = paste(paste(epi_id1, epi_id2, sep='_'), "normedcount.csv", sep='_')
 write.table(dxd.count, normedcount_name, quote=FALSE, sep="\t", dec=".", row.names=FALSE, col.names=TRUE)
 # dxd.count = read.csv("temp_count.csv", header=TRUE, sep = ",")
 
-print("---> Saving DEXSeq result")
+cat("\n---> Saving DEXSeq result", append = TRUE)
 result_name = paste(paste(epi_id1, epi_id2, sep='_'), "res.csv", sep='_')
-write.table(as.data.frame(dxd.res[c(1,2,3,5,6,7,10)]), result_name, 
+write.table(as.data.frame(dxd.res[c(1,2,3,5,6,7,10)]), result_name,
             quote=FALSE, sep="\t", dec=".", row.names=FALSE, col.names=TRUE)
 # dxd.res = read.csv(result_name, header=TRUE, sep = ",")
 
-print("---> Exporting HTML DEXSeq result")
-html_name = paste(paste(epi_id1, epi_id2, sep='_'), "html", sep='_')
-DEXSeqHTML(dxd.res, 
-           path = html_name,
-           FDR=0.05, color=c("#FF000080", "#0000FF80"),
-           BPPARAM = cores)
+#print("---> Exporting HTML DEXSeq result")
+#html_name = paste(paste(epi_id1, epi_id2, sep='_'), "html", sep='_')
+#DEXSeqHTML(dxd.res, 
+#           path = html_name,
+#           FDR=0.05, color=c("#FF000080", "#0000FF80"),
+#           BPPARAM = cores)
 
-
-print("===> FINISHED!")
+cat("\n===> FINISHED!", append = TRUE)
 end_time <- Sys.time()
-end_time - start_time
+cat(paste("\nTotal time:", end_time - start_time, sep = ' '), append = TRUE)
 
 
-par(bg = "white",
-    cex.axis = 0.8,
-    fg = "black",
-    pty = "m"
-    )
-tiff("E2F1_DEU.tiff", units="in", width=10, height=5, res=300)
-plotDEXSeq(dxd.res, geneID = "E2F1" , splicing = TRUE, expression = FALSE
-           , legend = TRUE
-           , color=c("#EE442F", "#63ACBE")
-           )
-
-dev.off()
-
-
-
-
+sink()
