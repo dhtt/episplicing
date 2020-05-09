@@ -69,6 +69,9 @@ write.table(dxd.count, normedcount_name, quote=FALSE, sep="\t", dec=".", row.nam
 # dxd.count = read.csv("temp_count.csv", header=TRUE, sep = ",")
 
 cat("\n---> Saving DEXSeq result", append = TRUE)
+r_data_name = paste(paste(epi_id1, epi_id2, sep='_'), "RData", sep='.')
+save(dxd.res, file=r_data_name)
+
 result_name = paste(paste(epi_id1, epi_id2, sep='_'), "res.csv", sep='_')
 write.table(as.data.frame(dxd.res[c(1,2,3,5,6,7,10)]), result_name,
             quote=FALSE, sep="\t", dec=".", row.names=FALSE, col.names=TRUE)
