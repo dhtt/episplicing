@@ -1,0 +1,28 @@
+from	to
+origin	H1 Cells
+origin	HUES64 Cells
+origin	ES-UCSF4  Cells
+origin	iPS DF 19.11 Cells
+H1 Cells	Trophoblast
+H1 Cells	Epiblast*
+Epiblast*	Mesendoderm
+Epiblast*	Ectoderm
+Mesendoderm	Endoderm
+Mesendoderm	Mesoderm
+Endoderm	Lung
+Endoderm	Adult Liver
+Endoderm	Pancreas
+Endoderm	Small Intestine
+Endoderm	Esophagus
+Endoderm	Sigmoid Colon
+Endoderm	Gastric
+Mesoderm	Mesenchymal Stem Cells
+Mesenchymal Stem Cells	Spleen
+Mesenchymal Stem Cells	Psoas Muscles
+Mesenchymal Stem Cells	Aorta
+Mesenchymal Stem Cells	Left Ventricle
+Mesenchymal Stem Cells	Right Ventricle
+Ectoderm	Neuronal Progenitor Cells
+Ectoderm	Cortex-derived Neurospheres
+Ectoderm	Ganglion Eminence-derived Neurospheres
+Ectoderm	Brain Hippocampus Middle
