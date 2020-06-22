@@ -13,7 +13,8 @@ all_res_list.pearcor = readRDS(paste(folder, "all_res_list.pearcor.RDS", sep='/'
 all_res_list.spearcor = readRDS(paste(folder, "all_res_list.spearcor.RDS", sep='/'))
 all_res_list.pearcor_p = readRDS(paste(folder, "all_res_list.pearcor_p.RDS", sep='/'))
 all_res_list.spearcor_p = readRDS(paste(folder, "all_res_list.spearcor_p.RDS", sep='/'))
-all_res_list.chisq = readRDS(paste(folder, "all_res_list.chisq.RDS", sep='/'))
+# all_res_list.chisq = readRDS(paste(folder, "all_res_list.chisq.RDS", sep='/'))
+all_res_list.bootcor_fisher = readRDS(paste(folder, "all_res_list.bootcor_fisher.RDS", sep='/'))
 
 # ------------ Get significant results ------------
 # ----1-----
@@ -43,7 +44,8 @@ all_res_list.pearcor_sig = get_all_res_list_sig(all_res_list.pearcor, "pearcor",
 all_res_list.spearcor_sig = get_all_res_list_sig(all_res_list.spearcor, "spearcor", r_sig=0.5)
 all_res_list.pearcor_p_sig = get_all_res_list_sig(all_res_list.pearcor_p, "pearcor_p", p_sig=0.05)
 all_res_list.spearcor_p_sig = get_all_res_list_sig(all_res_list.spearcor_p, "spearcor_p", p_sig=0.05)
-all_res_list.chisq_sig = get_all_res_list_sig(all_res_list.chisq, "chisq", p_sig = 0.05)
+# all_res_list.chisq_sig = get_all_res_list_sig(all_res_list.chisq, "chisq", p_sig = 0.05)
+all_res_list.bootcor_fisher_sig = get_all_res_list_sig(all_res_list.bootcor_fisher, "bootcor_fisher", p_sig = 0.05)
 
 # ----2-----
 join_all_res_list_sig <- function(all_res_list_sig){
@@ -67,6 +69,7 @@ all_res_list.spearcor_sig_joined = join_all_res_list_sig(all_res_list.spearcor_s
 all_res_list.pearcor_p_sig_joined = join_all_res_list_sig(all_res_list.pearcor_p_sig)
 all_res_list.spearcor_p_sig_joined = join_all_res_list_sig(all_res_list.spearcor_p_sig)
 all_res_list.chisq_sig_joined = join_all_res_list_sig(all_res_list.chisq_sig)
+all_res_list.bootcor_fisher_sig_joined = all_res_list.bootcor_fisher_sig
 
 # ----3-----
 get_tissue_specific_gene <- function(all_epigenes_list, pair_list, method="intersect"){
@@ -104,6 +107,9 @@ saveRDS(all_res_list.spearcor_p_sig_joined_genes, paste(folder, "tissue_spec/all
 
 all_res_list.chisq_sig_joined_genes = lapply(tissue_type_list, function(x) get_tissue_specific_gene(all_res_list.chisq_sig_joined, x))
 saveRDS(all_res_list.chisq_sig_joined_genes, paste(folder, "tissue_spec/all_res_list.chisq_sig_joined_genes.RDS", sep='/'))
+
+all_res_list.bootcor_fisher_sig_joined_genes = lapply(tissue_type_list, function(x) get_tissue_specific_gene(all_res_list.bootcor_fisher_sig_joined, x))
+saveRDS(all_res_list.bootcor_fisher_sig_joined_genes, paste(folder, "tissue_spec/all_res_list.bootcor_fisher_sig_joined_genes.RDS", sep='/'))
 
 lapply(all_res_list.chisq_sig_joined_genes, function(x) length(x))
 lapply(all_res_list.chisq_sig_joined_genes, function(x) paste(x, collapse = ', '))
@@ -159,6 +165,7 @@ all_genes_spearcor = Reduce(union, all_res_list.spearcor_sig_joined_genes)
 all_genes_pearcor_p = Reduce(union, all_res_list.pearcor_p_sig_joined)
 all_genes_spearcor_p = Reduce(union, all_res_list.spearcor_p_sig_joined)
 all_genes_chisq = Reduce(union, all_res_list.chisq_sig_joined)
+all_genes_bootcor_fisher = Reduce(union, all_res_list.bootcor_fisher_sig_joined)
 
 library(VennDiagram)
 venn.plot <- venn.diagram(x = list(
@@ -166,7 +173,8 @@ venn.plot <- venn.diagram(x = list(
   "Spearman cor" = all_genes_spearcor,
   "Pearson-p cor" = all_genes_pearcor_p,
   "Spearman-p cor" = all_genes_spearcor_p,
-  "Chi-square" = all_genes_chisq
+  # "Chi-square" = all_genes_chisq
+  Bootcor = all_genes_bootcor_fisher
 ), 
 filename=NULL, col="black", fill = c("orange", "red", "purple", "pink", "blue"), margin=0.1, alpha = 0.4,
 cat.dist = 0.1, print.mode = "raw")
