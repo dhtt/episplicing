@@ -13,22 +13,28 @@ all_res_list.pearcor_p.met = readRDS(paste("all_res_list.pearcor_p.met.RDS", sep
 all_res_list.pearcor_p[[7]] = all_res_list.pearcor_p.met
 lapply(all_res_list.pearcor_p, dim)
 
-RPKM = read.csv("~/Documents/BIOINFO/Episplicing/files/flank/57epigenomes.RPKM.pc", row.names=1, sep="")
-head(RPKM)
-epigenomes = c("E003", "E004", "E005", "E006", "E007", "E011","E012","E013", "E016", "E024", "E053","E054", "E065","E066","E071","E079","E094","E095", "E096", "E098", "E100","E105","E106", "E109","E113") #E022-E027
-RPKM = RPKM[, epigenomes]
-norm_RPKM = transpose(as.data.frame(apply(RPKM, 1, function(x) (x/max(x)))))
-head(norm_RPKM)
-TSI_RPKM = as.data.frame(apply(norm_RPKM, 1, function(x)((length(norm_RPKM)-sum(as.numeric(x)))/length(norm_RPKM))))
-TSI_RPKM$gene = rownames(RPKM)
-head(TSI_RPKM)
-ENS_list = TSI_RPKM[TSI_RPKM[[1]] >= 0.75, 2]
+get_tissue_spec_ref <- function(){
+  RPKM = read.csv("~/Documents/BIOINFO/Episplicing/files/flank/57epigenomes.RPKM.pc", row.names=1, sep="")
+  head(RPKM)
+  epigenomes = c("E003", "E004", "E005", "E006", "E007", "E011","E012","E013", "E016", "E024", "E053","E054", "E065","E066","E071","E079","E094","E095", "E096", "E098", "E100","E105","E106", "E109","E113") #E022-E027
+  RPKM = RPKM[, epigenomes]
+  norm_RPKM = transpose(as.data.frame(apply(RPKM, 1, function(x) (x/max(x)))))
+  head(norm_RPKM)
+  TSI_RPKM = as.data.frame(apply(norm_RPKM, 1, function(x)((length(norm_RPKM)-sum(as.numeric(x)))/length(norm_RPKM))))
+  TSI_RPKM$gene = rownames(RPKM)
+  head(TSI_RPKM)
+  ENS_list = TSI_RPKM[TSI_RPKM[[1]] >= 0.75, 2]
+  
+  ENS_gene_list = read.delim("~/Documents/BIOINFO/Episplicing/files/flank/Ensembl_v65.Gencode_v10.ENSG.gene_info.txt", header=FALSE)
+  head(ENS_gene_list)
+  colnames(ENS_gene_list) = c("ens", "chr", "start", "end", "strand", "feature", "symbol", "name")
+  TSI_symbols = ENS_gene_list[ENS_gene_list$ens %in% ENS_list, "symbol"]
+  return(TSI_symbols)
+}
+TSI_symbols = get_tissue_spec_ref()
+epigenomes_names = c("H1 Cells", "Mesendoderm", "Trophoblast",  "Mesenchyma", "Neuronal Progenitor Cells",  "Endoderm", "Ectoderm", "Mesoderm", "HUES64 Cells", "ES-UCSF4", "Cortex-derived Neurospheres", "Ganglion Eminence-derived Neurospheres",
+                     "Aorta", "Liver", "Brain Hippocampus Middle", "Esophagus", "Gastric", "Left Ventricle", "Lung", "Pancreas", "Psoas Muscle",   "Right Ventricle", "Sigmoid Colon", "Small Intestine", "Spleen")
 
-ENS_gene_list = read.delim("~/Documents/BIOINFO/Episplicing/files/flank/Ensembl_v65.Gencode_v10.ENSG.gene_info.txt", header=FALSE)
-head(ENS_gene_list)
-colnames(ENS_gene_list) = c("ens", "chr", "start", "end", "strand", "feature", "symbol", "name")
-TSI_symbols = ENS_gene_list[ENS_gene_list$ens %in% ENS_list, "symbol"]
-length(TSI_symbols)
 # ------------ Get significant results ------------
 # ----1-----
 get_all_res_list_sig <- function(all_res_list, method, r_sig=0.5, p_sig= 0.05){

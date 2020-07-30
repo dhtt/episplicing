@@ -10,17 +10,17 @@ col.highlight = "#fffa70"
 fontsize.title = 14
 type.color = c("#EE442F", "#63ACBE")
 margin = c(20, 20)
-
 gen = "hg19"
 #======================================================================================
-example_gene_folder = normalizePath("/Users/dhthutrang/example_E005_E100_ORAI3")
-gene_name = "ORAI3"
-epi_id1 = "E005"
-epi_id2 = "E100"
-epi_name1 = "Trophoblast"
-epi_name2 = "Right Ventricle"
+example_gene_folder = normalizePath("/Users/dhthutrang/Documents/BIOINFO/Episplicing/files/report/007_024") #INPUT
+gene_name = "NCAM1" #INPUT
+epi_id1 = "E007" #INPUT
+epi_id2 = "E024" #INPUT
+epi_name1 = "Neuronal Progenitor Cells" #INPUT
+epi_name2 = "ES-UCSF4" #INPUT
+reverseStrand = FALSE #INPUT
 all_files = list.files(example_gene_folder, full.names = TRUE)
-
+all_files
 #===== EXP =====
 transcript_file = all_files[grep("NCBI", all_files)]
 transcript = import.gff(transcript_file)
@@ -52,14 +52,14 @@ if (dim(transcript_sig)[[1]] != 0){
   grtrack_sig = grtrack
 }
 
-plotTracks(list(itrack, gtrack, grtrack, grtrack_sig), extend.left = 2500, extend.right = 2500)
+plotTracks(list(itrack, gtrack, grtrack_sig), extend.left = 2500, extend.right = 2500)
 
 
 #===== MET =====
 prepare_metdiff_example <- function(epi_id1, epi_id2, gene){
-  metdiff.exon = fread(normalizePath(all_files[grep('.*exon.*normedratio.csv.txt', all_files, fixed = FALSE)]), 
+  metdiff.exon = fread(all_files[grep('.*exon_.*normedratio.csv.txt', all_files, fixed = FALSE)], 
                        header=FALSE, stringsAsFactors = FALSE, quote=FALSE)
-  metdiff.pi = fread(normalizePath(all_files[grep('.*pi.*normedratio.csv.txt', all_files, fixed = FALSE)]), 
+  metdiff.pi = fread(all_files[grep('.*pi_.*normedratio.csv.txt', all_files, fixed = FALSE)], 
                      header=FALSE, stringsAsFactors = FALSE, quote=FALSE)
   head(metdiff.exon)
   head(metdiff.pi)
@@ -114,17 +114,18 @@ if (dim(met_sig)[[1]] != 0){
   mTrack_sig = mTrack
 }
 
-plotTracks(list(itrack, gtrack, grtrack_sig, mTrack_sig),
-           extend.left = 2500, extend.right = 2500,
-           groups = c(epi_id1, epi_id2),
-           background.title = "#597ca8")
+# plotTracks(list(itrack, gtrack, grtrack_sig, mTrack_sig),
+#            extend.left = 2500, extend.right = 2500,
+#            groups = c(epi_id1, epi_id2),
+#            background.title = "#597ca8")
 
 #===== HIS =====
 his_type = c("H3K27ac", "H3K27me3", "H3K36me3", "H3K4me1", "H3K4me3", "H3K9me3")
-his_type = c("H3K36me3", "H3K9me3", "H3K4me3", "H3K27me3", "H3K27ac", "H3K4me1")
+his_type = c("H3K36me3", "H3K9me3", "H3K4me3", "H3K27me3", "H3K4me1")
+his_type = c("H3K36me3", "H3K9me3", "H3K4me3", "H3K27me3", "H3K27ac",  "H3K4me1")
 prepare_hisdiff_example <- function(epi_id1, epi_id2, gene, type){
-  file_id_exon = paste(".*exon", paste(type, "txt", sep='.'), sep='.*')
-  file_id_pi = paste(".*pi", paste(type, "txt", sep='.'), sep='.*')
+  file_id_exon = paste(".*exon_", paste(type, "txt", sep='.'), sep='.*')
+  file_id_pi = paste(".*pi_", paste(type, "txt", sep='.'), sep='.*')
   hisdiff.exon = fread(normalizePath(all_files[grep(file_id_exon, all_files, fixed = FALSE)]), 
                        header=FALSE, stringsAsFactors = FALSE, quote=FALSE)
   hisdiff.pi = fread(normalizePath(all_files[grep(file_id_pi, all_files, fixed = FALSE)]), 
@@ -168,7 +169,7 @@ all_his_sigs = all_his_counts[[2]]
 all_his_counts = all_his_counts[[1]]
 lapply(all_his_sigs, function(x) dim(x)[[1]])
 
-get_all_his_track.sigs <- function(){
+get_all_his_track.sigs <- function(expansion){
   all_his_track.sigs = vector("list", length(all_his_counts))
   for (i in 1:length(all_his_counts)){
     his_count = all_his_counts[[i]]
@@ -178,8 +179,8 @@ get_all_his_track.sigs <- function(){
                           type = c("a"), legend = FALSE,
                           col = type.color)
       hTrack.sig <- HighlightTrack(trackList = hTrack, chromosome = chr,
-                                   start = his_sig$start  - 100,
-                                   end = his_sig$end  + 100,
+                                   start = his_sig$start  - expansion,
+                                   end = his_sig$end  + expansion,
                                    col = col.highlight, fill = col.highlight)
       all_his_track.sigs[[i]] = hTrack.sig
     }
@@ -192,7 +193,7 @@ get_all_his_track.sigs <- function(){
   }
   return(all_his_track.sigs)
 }
-all_his_track.sigs = get_all_his_track.sigs()
+all_his_track.sigs = get_all_his_track.sigs(100)
 
 temp = all_his_sigs[[6]]
 sum(temp$end - temp$start)/(max(end(transcript)) - min(start(transcript)))*100
@@ -209,6 +210,7 @@ plotTracks(all_tracks,
            col.title = col.title,
            groups = c(epi_name1, epi_name2),
            margin = margin, 
+           reverseStrand = reverseStrand,
            stackHeight = 0.5)
 
 tiff(paste(paste(epi_id1, epi_id2, gene_name, sep='_'), "tiff", sep='.'), 
@@ -221,6 +223,7 @@ plotTracks(all_tracks,
            col.title = col.title,
            groups = c(epi_name1, epi_name2),
            margin = margin, 
+           reverseStrand = reverseStrand,
            stackHeight = 0.5)
 dev.off()
 
