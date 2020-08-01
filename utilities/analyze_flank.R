@@ -100,74 +100,88 @@ tissue_type_list = get_tissue_spec_array()
 histone_type_list = list("H3K4me1", "H3K4me3", "H3K9me3", "H3K27me3", "H3K36me3", "H3K27ac", "Methylation")
 
 #START here
-all_res_list.pearcor_p_sig_joinedtissue = vector("list") #List of 6 histone, each has sig genes for 25 tissues
-for (i in 1:length(all_res_list.pearcor_p_sig)){ #for each histone type
-  res = all_res_list.pearcor_p_sig[[i]]
-  all_tissues = vector("list")
-  if (i == 6){
-    tissue_list = tissue_type_list[[2]] }
-  else {
-    tissue_list = tissue_type_list[[1]] }
-  for (j in 1:length(tissue_list)){
-    print(paste(i, j, sep= ', '))
-    tissue_type = tissue_list[[j]]
-    all_tissues[[j]] = Reduce(union, res[tissue_type])
+get_genes_for_tissue <- function(res_list){
+  all_genes_joined = vector("list") #List of 6 histone, each has sig genes for 25 tissues
+  for (i in 1:length(res_list)){ #for each histone type
+    res = res_list[[i]]
+    all_tissues = vector("list")
+    if (i == 6){
+      tissue_list = tissue_type_list[[2]] }
+    else {
+      tissue_list = tissue_type_list[[1]] }
+    for (j in 1:length(tissue_list)){
+      print(paste(i, j, sep= ', '))
+      tissue_type = tissue_list[[j]]
+      all_tissues[[j]] = Reduce(union, res[tissue_type])
+    }
+    all_genes_joined[[i]] = all_tissues
   }
-  all_res_list.pearcor_p_sig_joinedtissue[[i]] = all_tissues
+  temp = all_genes_joined[[6]][10:22]
+  all_genes_joined[[6]][10:13] = c("")
+  all_genes_joined[[6]][13:25] = temp
+  return(all_genes_joined)
 }
-temp = all_res_list.pearcor_p_sig_joinedtissue[[6]][10:22]
-all_res_list.pearcor_p_sig_joinedtissue[[6]][10:13] = c("")
-all_res_list.pearcor_p_sig_joinedtissue[[6]][13:25] = temp
-length(all_res_list.pearcor_p_sig_joinedtissue)
-lapply(all_res_list.pearcor_p_sig_joinedtissue, length)
-lapply(all_res_list.pearcor_p_sig_joinedtissue[[7]], length)
+all_genes_joined = get_genes_for_tissue(all_res_list.pearcor_p_sig)
+length(all_genes_joined)
+lapply(all_genes_joined, length)
+lapply(all_genes_joined[[6]], length)
 
-all_len_before = vector("list")
-for (i in 1:length(all_res_list.pearcor_p_sig_joinedtissue)){
-  len = lapply(all_res_list.pearcor_p_sig_joinedtissue[[i]], length) 
-  print(length(len))
-  all_len_before[[i]] = len
-}
-all_len_before[[6]][c(10,11,12)] = NaN
-all_len_before = as.data.frame(do.call(cbind, all_len_before))
-epigenomes_names = c("H1 Cells", "Mesendoderm", "Trophoblast",  "Mesenchyma", "Neuronal Progenitor Cells",  "Endoderm", "Ectoderm", "Mesoderm", "HUES64 Cells", "ES-UCSF4", "Cortex-derived Neurospheres", "Ganglion Eminence-derived Neurospheres",
-                     "Aorta", "Liver", "Brain Hippocampus Middle", "Esophagus", "Gastric", "Left Ventricle", "Lung", "Pancreas", "Psoas Muscle",   "Right Ventricle", "Sigmoid Colon", "Small Intestine", "Spleen")
-rownames(all_len_before) = epigenomes_names
-colnames(all_len_before) = histone_type_list
-
-for (i in 1:length(all_res_list.pearcor_p_sig_joinedtissue)){
-  print(paste("New histone type", histone_type_list[i], sep=' '))
-  for (j in 1: length(all_res_list.pearcor_p_sig_joinedtissue[[i]])){
-    print(paste(i, j, sep=' '))
-    gene_set = all_res_list.pearcor_p_sig_joinedtissue[[i]][[j]]
-    gene_set = gene_set[gene_set %in% TSI_symbols]
-    all_res_list.pearcor_p_sig_joinedtissue[[i]][[j]] = gene_set
-    print(length(gene_set))
+get_all_len_before <- function(all_genes_joined){
+  all_len_before = vector("list")
+  for (i in 1:length(all_genes_joined)){
+    len = lapply(all_genes_joined[[i]], length) 
+    print(length(len))
+    all_len_before[[i]] = len
   }
-} #List of 6 histone, each has FILTERED sig genes for 25 tissues
-length(all_res_list.pearcor_p_sig_joinedtissue) #gene names
-lapply(all_res_list.pearcor_p_sig_joinedtissue, length)
-lapply(all_res_list.pearcor_p_sig_joinedtissue[[1]], length) 
-
-all_len_after = vector("list")
-for (i in 1:length(all_res_list.pearcor_p_sig_joinedtissue)){
-  len = lapply(all_res_list.pearcor_p_sig_joinedtissue[[i]], length) 
-  print(length(len))
-  all_len_after[[i]] = len
+  all_len_before[[6]][c(10,11,12)] = NaN
+  all_len_before = as.data.frame(do.call(cbind, all_len_before))
+  rownames(all_len_before) = epigenomes_names
+  colnames(all_len_before) = histone_type_list
+  return(all_len_before)
 }
-all_len_after[[6]][c(10,11,12)] = NaN
-all_len_after = as.data.frame(do.call(cbind, all_len_after))
-rownames(all_len_after) = epigenomes_names
-colnames(all_len_after) = histone_type_list
+all_len_before = get_all_len_before(all_genes_joined)
 
+get_genes_for_tissue_filtered <- function(all_genes_joined){
+  for (i in 1:length(all_genes_joined)){
+    print(paste("New histone type", histone_type_list[i], sep=' '))
+    for (j in 1: length(all_genes_joined[[i]])){
+      print(paste(i, j, sep=' '))
+      gene_set = all_genes_joined[[i]][[j]]
+      gene_set = gene_set[gene_set %in% TSI_symbols]
+      all_genes_joined[[i]][[j]] = gene_set
+      print(length(gene_set))
+    }
+  } #List of 6 histone, each has FILTERED sig genes for 25 tissues
+  return(all_genes_joined)
+}
+all_genes_joined_filtered = get_genes_for_tissue_filtered(all_genes_joined)
+length(all_genes_joined) #gene names
+lapply(all_genes_joined, length)
+lapply(all_genes_joined[[7]], length) 
+
+get_all_len_after <- function(all_genes_joined){
+  all_len_after = vector("list")
+  for (i in 1:length(all_genes_joined)){
+    len = lapply(all_genes_joined[[i]], length) 
+    print(length(len))
+    all_len_after[[i]] = len
+  }
+  all_len_after[[6]][c(10,11,12)] = NaN
+  all_len_after = as.data.frame(do.call(cbind, all_len_after))
+  rownames(all_len_after) = epigenomes_names
+  colnames(all_len_after) = histone_type_list
+  return(all_len_after)
+}
+all_len_after = get_all_len_after(all_genes_joined_filtered)
 #END here
-length(all_res_list.pearcor_p_sig_joinedtissue[[1]])
-paste(all_res_list.pearcor_p_sig_joinedtissue[[4]][[12]], collapse = ', ')
-temp = Reduce(intersect, all_res_list.pearcor_p_sig_joinedtissue[[7]])
-paste(temp, collapse = ', ')
-temp = union(all_res_list.pearcor_p_sig_joinedtissue[[7]][[12]], all_res_list.pearcor_p_sig_joinedtissue[[2]][[12]])
 
-# -----3-----
+length(all_genes_joined_filtered[[1]])
+paste(all_genes_joined_filtered[[4]][[12]], collapse = ', ')
+temp = Reduce(intersect, all_genes_joined_filtered[[7]])
+paste(temp, collapse = ', ')
+temp = union(all_genes_joined_filtered[[7]][[12]], all_genes_joined_filtered[[2]][[12]])
+
+# ----- Heatmap of tissue-spec genes -----
 length(intersect(all_res_list.pearcor_p_sig_joinedtissue[[1]][[1]], all_res_list.pearcor_p_sig_joinedtissue[[1]][[2]]))
 Reduce(intersect, all_res_list.pearcor_p_sig_joinedtissue[[5]])
 
@@ -259,21 +273,55 @@ aheatmap(all_distances[[7]], Rowv = TRUE, Colv = TRUE, scale="none",
          main = paste(histone_type_list[[7]]), annCol = epigenomes_annot, annRow = epigenomes_annot,
          annColors = epigenomes_colors, breaks = breaks, color = color)
 dev.off()
-# -----4-----
+# ----- Annotation of common genes -----
 epigenomes_names[c(2,8,7,3)] #H1 1
 epigenomes_names[c(9, 11, 12)] #H1 2
 epigenomes_names[c(11, 12, 9, 10)] #H2
 epigenomes_names[c(14,13,18)] #H2 2
 epigenomes_names[c(16, 20, 25, 19)] #H3 1
 epigenomes_names[c(11, 12, 9, 10)] #H3 2
-epigenomes_names[c(11, 12, 9, 10,1)] #H4 1
+epigenomes_names[c(11, 12, 9, 10, 1)] #H4 1
 epigenomes_names[c(3, 4, 6, 2)] #H4 2
 epigenomes_names[c(16,23)]
-epigenomes_names[c(8,3,7,6,4)] #H5
+epigenomes_names[c(8,3,7,6)] #H5
 epigenomes_names[c(14,25,18)] #H6 1
 epigenomes_names[c(24,23,16,19)] #H6 1
-epigenomes_names[c(20, 22, 21)] #H6 1
-paste0(Reduce(intersect, all_res_list.pearcor_p_sig_joinedtissue[[5]][c(8,3,7,6,4)]), collapse = "|")
+epigenomes_names[c(3, 4, 6, 2)] #H6 1
+epigenomes_names[c(22, 21, 13,25,24, 20,14, 18, 15)] #H6 1
+
+cluster = list(list(1, c(2, 8, 7, 3), c(23, 22, 25, 17, 13, 15, 16, 24), c(6, 5, 4), c(21, 19, 20, 18)),
+               list(2, c(18, 23,17,25), c(5, 2, 4), c(24, 20, 19, 16, 22, 21)),
+               list(3, c(23, 13, 17, 15, 22, 21, 5, 24), c(16, 20, 25, 19), c(4, 2, 6), c(1, 12, 10, 11, 9)),
+               list(4, c(1, 12, 10, 11), c(16, 19, 17, 23), c(3, 4, 6, 2), c(22, 21, 13, 25, 24, 20,14, 18, 15)),
+               list(5, c(22, 21, 23), c(8,3,7,6), c(25, 15, 19, 17), c(24, 13, 18)),
+               list(6, c(14, 18, 25), c(5, 8, 7), c(17, 13, 24, 23, 16, 19), c(20, 22, 21)), 
+               list(7, c(20, 23, 21, 18), c(2, 3, 5, 4), c(22, 15, 17, 16), c(14, 24, 25, 19, 13)))
+get_heatmap_subset <- function(reduce_method = "union"){
+  lapply(cluster, function(x){
+    histone_type = x[[1]]
+    print(histone_type_list[histone_type])
+    for (i in 2:length(x)){
+      group = x[[i]]
+      if (reduce_method == "union"){
+        subset = Reduce(union, all_genes_joined_filtered[[histone_type]][group])
+      }
+      else if (reduce_method == "intersect"){
+        subset = Reduce(intersect, all_genes_joined[[histone_type]][group])
+      }
+      else {
+        print("Reduce method!!")
+      }
+      print(length(subset))
+    }
+  })
+}
+get_heatmap_subset("union")
+
+lapply(cluster, function(x) paste(length(Reduce(union, all_genes_joined_filtered[[1]][x]))))
+lapply(cluster, function(x) paste(Reduce(intersect, all_genes_joined[[1]][x]), collapse = ', '))
+
+temp = Reduce(union, all_genes_joined_filtered[[7]][c(20, 23, 21, 18)])
+paste(temp, collapse = ", ")
 
 Reduce(intersect, all_res_list.pearcor_p_sig_joinedtissue[[5]])
 
